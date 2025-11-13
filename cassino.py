@@ -9,6 +9,12 @@ from game_logic import (
     get_saldo_inicial
 )
 
+# Função auxiliar para lidar com o resultado do jogo e o pop-up
+def _handle_game_result(resultado, saldo_display, vitoria):
+    if vitoria:
+        gr.Info("🎉 Parabéns! Você ganhou!")
+    return resultado, saldo_display
+
 with gr.Blocks(title="🎰 Cassino Wyden") as app:
     
     gr.Markdown("# 🎰 CASSINO WYDEN")
@@ -18,15 +24,9 @@ with gr.Blocks(title="🎰 Cassino Wyden") as app:
     with gr.Row():
         saldo_display = gr.Textbox(label="", value=get_saldo_inicial(), interactive=False)
     
-    # Controles de Saldo
-    with gr.Row():
-        valor_add = gr.Number(label="Adicionar Saldo (R$)", value=100)
-        btn_add = gr.Button("💵 Adicionar")
-        btn_reset = gr.Button("🔄 Resetar")
-    
     gr.Markdown("---")
     
-    # Abas dos Jogos
+    # Abas dos Jogos e a nova aba "Caixa"
     with gr.Tabs():
         
         # --- Roleta ---
@@ -40,7 +40,9 @@ with gr.Blocks(title="🎰 Cassino Wyden") as app:
             btn_roleta.click(
                 fn=jogar_roleta,
                 inputs=[aposta_roleta, cor_roleta],
-                outputs=[resultado_roleta, saldo_display]
+                outputs=[resultado_roleta, saldo_display],
+                # Adiciona uma função de pós-processamento para o pop-up
+                postprocess=_handle_game_result
             )
         
         # --- Caça-Níquel ---
@@ -53,7 +55,8 @@ with gr.Blocks(title="🎰 Cassino Wyden") as app:
             btn_caca.click(
                 fn=jogar_caca_niquel,
                 inputs=[aposta_caca],
-                outputs=[resultado_caca, saldo_display]
+                outputs=[resultado_caca, saldo_display],
+                postprocess=_handle_game_result
             )
             
         # --- Dados ---
@@ -67,7 +70,8 @@ with gr.Blocks(title="🎰 Cassino Wyden") as app:
             btn_dados.click(
                 fn=jogar_dados,
                 inputs=[aposta_dados, escolha_dados],
-                outputs=[resultado_dados, saldo_display]
+                outputs=[resultado_dados, saldo_display],
+                postprocess=_handle_game_result
             )
             
         # --- Cara ou Coroa ---
@@ -81,13 +85,29 @@ with gr.Blocks(title="🎰 Cassino Wyden") as app:
             btn_cc.click(
                 fn=jogar_cara_coroa,
                 inputs=[aposta_cc, escolha_cc],
-                outputs=[resultado_cc, saldo_display]
+                outputs=[resultado_cc, saldo_display],
+                postprocess=_handle_game_result
             )
+            
+        # --- Nova Aba: Caixa (Depósito e Reset) ---
+        with gr.Tab("💵 Caixa"):
+            gr.Markdown("### Gerenciamento de Saldo")
+            
+            # Depósito
+            with gr.Row():
+                valor_add = gr.Number(label="Adicionar Saldo (R$)", value=100)
+                btn_add = gr.Button("💵 Adicionar", variant="primary")
+            
+            # Reset
+            with gr.Row():
+                btn_reset = gr.Button("🔄 Resetar Saldo", variant="secondary")
+                
+            resultado_caixa = gr.Markdown()
+            
+            # Conexão dos botões de saldo com as saídas de resultado
+            # Não usamos postprocess aqui, pois adicionar_saldo e resetar já retornam False para vitoria
+            btn_add.click(fn=adicionar_saldo, inputs=[valor_add], outputs=[resultado_caixa, saldo_display])
+            btn_reset.click(fn=resetar, outputs=[resultado_caixa, saldo_display])
     
-    # Conexão dos botões de saldo com as saídas de resultado de todos os jogos
-    # Para garantir que a mensagem de sucesso/erro apareça em algum lugar
-    btn_add.click(fn=adicionar_saldo, inputs=[valor_add], outputs=[resultado_roleta, saldo_display])
-    btn_reset.click(fn=resetar, outputs=[resultado_roleta, saldo_display])
-
 if __name__ == "__main__":
     app.launch(share=True)

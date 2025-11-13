@@ -7,14 +7,17 @@ def _validar_aposta(valor_aposta):
     """Valida se a aposta é positiva e se o saldo é suficiente."""
     global saldo
     if valor_aposta <= 0 or valor_aposta > saldo:
+        # Retorna False para vitória, mensagem de erro e saldo
         return False, f"❌ Aposta inválida! Seu saldo é R$ {saldo:.2f}", f"💰 Saldo: R$ {saldo:.2f}"
     return True, None, None
 
 def _atualizar_saldo(resultado, valor_aposta, ganho):
-    """Atualiza o saldo e retorna a mensagem de resultado e o novo saldo formatado."""
+    """Atualiza o saldo e retorna a mensagem de resultado, o novo saldo formatado e o status de vitória."""
     global saldo
     
+    vitoria = False
     if ganho > 0:
+        vitoria = True
         saldo += ganho
         resultado += f"🎉 **VOCÊ GANHOU R$ {ganho:.2f}!**"
     else:
@@ -22,14 +25,16 @@ def _atualizar_saldo(resultado, valor_aposta, ganho):
         resultado += f"😢 **Você perdeu R$ {valor_aposta:.2f}**"
         
     resultado += f"\n\n💰 Saldo atual: **R$ {saldo:.2f}**"
-    return resultado, f"💰 Saldo: R$ {saldo:.2f}"
+    # Retorna o resultado, o saldo formatado e o status de vitória
+    return resultado, f"💰 Saldo: R$ {saldo:.2f}", vitoria
 
 # --- JOGO: ROLETA ---
 def jogar_roleta(valor_aposta, escolha_cor):
     """Lógica do jogo de Roleta."""
     valido, msg_erro, saldo_erro = _validar_aposta(valor_aposta)
     if not valido:
-        return msg_erro, saldo_erro
+        # Retorna False para vitória em caso de erro
+        return msg_erro, saldo_erro, False
     
     numero = random.randint(0, 36)
     vermelhos = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]
@@ -57,7 +62,8 @@ def jogar_caca_niquel(valor_aposta):
     """Lógica do jogo de Caça-Níquel."""
     valido, msg_erro, saldo_erro = _validar_aposta(valor_aposta)
     if not valido:
-        return msg_erro, saldo_erro
+        # Retorna False para vitória em caso de erro
+        return msg_erro, saldo_erro, False
     
     simbolos = ['🍒', '🍋', '🍊', '🍇', '💎', '7️⃣']
     slot1, slot2, slot3 = random.choices(simbolos, k=3)
@@ -89,7 +95,8 @@ def jogar_dados(valor_aposta, escolha_numero):
     """Lógica do jogo de Dados."""
     valido, msg_erro, saldo_erro = _validar_aposta(valor_aposta)
     if not valido:
-        return msg_erro, saldo_erro
+        # Retorna False para vitória em caso de erro
+        return msg_erro, saldo_erro, False
     
     dado1 = random.randint(1, 6)
     dado2 = random.randint(1, 6)
@@ -120,7 +127,8 @@ def jogar_cara_coroa(valor_aposta, escolha_lado):
     """Lógica do jogo Cara ou Coroa."""
     valido, msg_erro, saldo_erro = _validar_aposta(valor_aposta)
     if not valido:
-        return msg_erro, saldo_erro
+        # Retorna False para vitória em caso de erro
+        return msg_erro, saldo_erro, False
     
     lados = ["Cara", "Coroa"]
     lado_sorteado = random.choice(lados)
@@ -141,14 +149,17 @@ def adicionar_saldo(valor):
     global saldo
     if valor > 0:
         saldo += valor
-        return f"✅ R$ {valor:.2f} adicionados!", f"💰 Saldo: R$ {saldo:.2f}"
-    return "❌ Valor inválido!", f"💰 Saldo: R$ {saldo:.2f}"
+        # Retorna False para vitória, pois não é um jogo
+        return f"✅ R$ {valor:.2f} adicionados!", f"💰 Saldo: R$ {saldo:.2f}", False
+    # Retorna False para vitória em caso de erro
+    return "❌ Valor inválido!", f"💰 Saldo: R$ {saldo:.2f}", False
 
 def resetar():
     """Reseta o saldo para o valor inicial."""
     global saldo
     saldo = 1000.0
-    return "✅ Saldo resetado para R$ 1000.00!", f"💰 Saldo: R$ {saldo:.2f}"
+    # Retorna False para vitória, pois não é um jogo
+    return "✅ Saldo resetado para R$ 1000.00!", f"💰 Saldo: R$ {saldo:.2f}", False
 
 def get_saldo_inicial():
     """Retorna o saldo inicial formatado."""
